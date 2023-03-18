@@ -10,13 +10,17 @@
       </select>
     </div>
     <div class="countriesList">
-      <country-card v-for="country in countries" :country="country"></country-card>
+      <country-card
+      v-for="country in countries"
+      :key="country.demonym"
+      :country="country"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import countryCard from './CountryCard.vue'
+import countryCard from '../components/CountryCard.vue'
 
 export default {
   name: 'countries-list',
@@ -75,5 +79,7 @@ icon {
 
 .countriesList {
   display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
 }
 </style>

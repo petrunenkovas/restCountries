@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import BaseLayout from '@/components/Layout/BaseLayout'
+import BaseLayout from '@/layout/BaseLayout'
 
 Vue.use(Router)
 
@@ -10,8 +10,8 @@ export default new Router({
       path: '/',
       component: BaseLayout,
       children: [
-        { path: '', component: () => import('../components/ContriesList/CountriesList.vue') },
-        //{ path: 'details/:idProduct', component: () => import('../views/home/Details.vue') }
+        { path: '', component: () => import('../views/CountriesList.vue') },
+        { path: 'details/:countryName', component: () => import('../views/CountryDetails.vue') }
       ]
     }
   ]
