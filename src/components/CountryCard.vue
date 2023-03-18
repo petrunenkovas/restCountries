@@ -43,7 +43,7 @@ export default {
       }
       return this.country[viewName]
     },
-    handleClick(e) {
+    handleClick (e) {
       this.$router.push('/details/' + this.country.name.common)
     }
   }
