@@ -3,15 +3,16 @@
     <div class="head">
       <div class="search">
         <font-awesome-icon class="icon" icon="fa-solid fa-magnifying-glass" />
-        <input type="text" placeholder="Search for a country...">
+        <input v-model="searchState" type="text" placeholder="Search for a country...">
       </div>
-      <select class="filter">
+      <select class="filter" v-model="selectedRegion">
         <option>Filter by Region</option>
+        <option v-for="region in getAllRegions">{{ region }}</option>
       </select>
     </div>
     <div class="countriesList">
       <country-card
-      v-for="country in countries"
+      v-for="country in searchedAndFilteredCountries"
       :key="country.demonym"
       :country="country"
       />
@@ -25,6 +26,12 @@ import countryCard from '../components/CountryCard.vue'
 export default {
   name: 'countries-list',
   components: { countryCard },
+  data () {
+    return {
+      searchState: '',
+      selectedRegion: 'all'
+    }
+  },
   mounted () {
     this.initApp()
   },
@@ -36,6 +43,24 @@ export default {
   computed: {
     countries () {
       return this.$store.getters.countries
+    },
+    getAllRegions () {
+      let uniqueRegions = new Set()
+      this.countries.forEach((country => uniqueRegions.add(country.region)))
+      console.log(uniqueRegions);
+      return uniqueRegions
+    },
+    searchedCountries () {
+      if (this.searchState) {
+        return this.countries.filter(country => country.name.common.toLowerCase().includes(this.searchState.toLowerCase()))
+      }
+      return this.countries
+    },
+    searchedAndFilteredCountries () {
+      if (this.selectedRegion !== 'all') {
+        return this.searchedCountries.filter(country => country.region === this.selectedRegion)
+      }
+      return this.searchedCountries
     }
   }
 }
