@@ -1,10 +1,10 @@
 <template>
-  <div class="details">
+  <div :class="isDarkTheme ? 'details dark': 'details'">
     <div class="details_header">
-      <router-link class="button" to="/">&#8592; Back</router-link>
+      <router-link :class="isDarkTheme ? 'button dark': 'button'" to="/">&#8592; Back</router-link>
     </div>
     <div class="details_container">
-      <img :src="countryDetails.flags.png">
+      <img :class="isDarkTheme ? 'dark' : ''" :src="countryDetails.flags.png">
       <div class="details_info">
         <h2>{{ countryDetails.name.common }}</h2>
         <div class="details_info_container">
@@ -19,7 +19,7 @@
         <div class="borders_container" v-if="countryDetails.borders.length > 0">
           <p class="borders_header"><strong>Border Contries: </strong></p>
           <router-link
-          class="button"
+          :class="isDarkTheme ? 'button dark': 'button'"
           v-for="border in countryDetails.borders"
           :key="border"
           :to="'/details/' + countryNameByCode(border)"
@@ -85,6 +85,9 @@ export default {
   computed: {
     countryDetails () {
       return this.$store.getters.countryDetails
+    },
+    isDarkTheme () {
+      return this.$store.getters.isDarkTheme
     }
   },
   mounted () {
@@ -100,6 +103,10 @@ export default {
 <style scoped>
 .details {
   background-color: hsl(0, 0%, 100%);
+  height: 81vh;
+}
+.details.dark {
+  background-color: hsl(207, 26%, 17%);
 }
 .details_header {
   margin: 55px;
@@ -113,6 +120,11 @@ export default {
   padding: 5px 15px;
   border-radius: 5px;
   margin: 0 5px;
+}
+.button.dark {
+  background-color: hsl(209, 23%, 22%);
+  box-shadow: 0 0 5px hsl(200, 15%, 8%);
+  color: hsl(0, 0%, 100%);
 }
 .details_container {
   margin: auto;
@@ -132,6 +144,9 @@ img {
   padding: 0;
   margin:  0 60px;
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
+}
+img.dark {
+  box-shadow: 0 0 5px hsl(200, 15%, 8%);
 }
 .details_info_container {
   display: flex;

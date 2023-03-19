@@ -1,13 +1,13 @@
 <template>
   <div>
     <div class="head">
-      <div class="search">
+      <div class="search" :class="isDarkTheme ? 'dark' : ''">
         <font-awesome-icon class="icon" icon="fa-solid fa-magnifying-glass" />
         <input v-model="searchState" type="text" placeholder="Search for a country...">
       </div>
-      <select class="filter" v-model="selectedRegion">
-        <option>Filter by Region</option>
-        <option v-for="region in getAllRegions">{{ region }}</option>
+      <select :class="isDarkTheme ? 'filter dark' : 'filter'" v-model="selectedRegion">
+        <option hidden value="all">Filter by Region</option>
+        <option v-for="region in getAllRegions" :key="region" :value="region">{{ region }}</option>
       </select>
     </div>
     <div class="countriesList">
@@ -46,8 +46,7 @@ export default {
     },
     getAllRegions () {
       let uniqueRegions = new Set()
-      this.countries.forEach((country => uniqueRegions.add(country.region)))
-      console.log(uniqueRegions);
+      this.countries.forEach(country => uniqueRegions.add(country.region))
       return uniqueRegions
     },
     searchedCountries () {
@@ -61,6 +60,9 @@ export default {
         return this.searchedCountries.filter(country => country.region === this.selectedRegion)
       }
       return this.searchedCountries
+    },
+    isDarkTheme () {
+      return this.$store.getters.isDarkTheme
     }
   }
 }
@@ -81,7 +83,10 @@ export default {
   padding: 10px 30px;
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
 }
-
+.search.dark, .filter.dark {
+  background-color: hsl(209, 23%, 22%);
+  box-shadow: 0 0 5px hsl(200, 15%, 8%);
+}
 .search {
   display: flex;
   justify-content:flex-start;
@@ -92,9 +97,11 @@ export default {
 
 input, select {
   border: 0;
+  color: inherit;
+  background-color: inherit;
 }
 
-input:focus {
+input:focus, select:focus {
   outline: none;
 }
 

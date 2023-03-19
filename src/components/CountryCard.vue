@@ -1,5 +1,5 @@
 <template>
-  <div class="contry_container" @click="handleClick">
+  <div :class="isDarkTheme ? 'country_container dark' : 'country_container'" @click="handleClick">
     <div class="flag">
       <img :src="country.flags.png">
     </div>
@@ -46,13 +46,19 @@ export default {
     handleClick (e) {
       this.$router.push('/details/' + this.country.name.common)
     }
+  },
+
+  computed: {
+    isDarkTheme () {
+      return this.$store.getters.isDarkTheme
+    }
   }
 }
 </script>
 
 <style scoped>
 
-.contry_container {
+.country_container {
   display: flex;
   flex-direction: column;
   height: 300px;
@@ -63,6 +69,11 @@ export default {
   border-radius: 5px;
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
 }
+.country_container.dark {
+  background-color: hsl(209, 23%, 22%);
+  box-shadow: 0 0 5px hsl(200, 15%, 8%);
+}
+
 img {
   object-fit: cover;
   width: 240px;
