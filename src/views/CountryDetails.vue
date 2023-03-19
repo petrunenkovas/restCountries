@@ -1,21 +1,31 @@
 <template>
   <div class="details">
     <div class="details_header">
-      <router-link class="backToMain" to="/">&#8592; Back</router-link>
+      <router-link class="button" to="/">&#8592; Back</router-link>
     </div>
     <div class="details_container">
       <img :src="countryDetails.flags.png">
       <div class="details_info">
         <h2>{{ countryDetails.name.common }}</h2>
-        <p
-        v-for="detail in details"
-        :key="detail.name"
-        >
-          <strong>{{ detail.title }}:</strong>
-          {{ contryDataView(detail.name) }}
-        </p>
-        <div class="b">
-
+        <div class="details_info_container">
+          <p
+          v-for="detail in details"
+          :key="detail.name"
+          >
+            <strong>{{ detail.title }}:</strong>
+            {{ contryDataView(detail.name) }}
+          </p>
+        </div>
+        <div class="borders_container" v-if="countryDetails.borders.length > 0">
+          <p class="borders_header"><strong>Border Contries: </strong></p>
+          <router-link
+          class="button"
+          v-for="border in countryDetails.borders"
+          :key="border"
+          :to="'/details/' + countryNameByCode(border)"
+          >
+          {{ countryNameByCode(border) }}
+          </router-link>
         </div>
       </div>
     </div>
@@ -31,9 +41,9 @@ export default {
         {name: 'nativeName', title: 'Native Name'},
         {name: 'population', title: 'Population'},
         {name: 'region', title: 'Region'},
-        {name: 'subRegion', title: 'Sup Region'},
+        {name: 'subregion', title: 'Sup Region'},
         {name: 'capital', title: 'Capital'},
-        {name: 'topLevelDomain', title: 'Top Level Domain'},
+        {name: 'tld', title: 'Top Level Domain'},
         {name: 'currencies', title: 'Currencies'},
         {name: 'languages', title: 'Languages'}
       ]
@@ -46,6 +56,9 @@ export default {
     contryDataView (viewName) {
       if (viewName === 'capital') {
         return this.countryDetails[viewName][0]
+      }
+      if (viewName === 'tld') {
+        return this.countryDetails[viewName].join(', ')
       }
       if (viewName === 'population') {
         return Number(this.countryDetails[viewName]).toLocaleString()
@@ -63,6 +76,10 @@ export default {
         return nativeNames.join(', ')
       }
       return this.countryDetails[viewName]
+    },
+    countryNameByCode (code) {
+      let country = this.$store.getters.countries.find((country) => country.cca3 === code)
+      return country.name.common
     }
   },
   computed: {
@@ -71,6 +88,10 @@ export default {
     }
   },
   mounted () {
+    this.$store.dispatch('initApp')
+    this.fetchCountryDetails(this.$route.params.countryName)
+  },
+  updated () {
     this.fetchCountryDetails(this.$route.params.countryName)
   }
 }
@@ -81,16 +102,17 @@ export default {
   background-color: hsl(0, 0%, 100%);
 }
 .details_header {
-  margin: 60px;
+  margin: 55px;
   width: fit-content;
 }
-.backToMain {
+.button {
   text-decoration: none;
   color: black;
-  width: 50px;
+  width: fit-content;
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
   padding: 5px 15px;
   border-radius: 5px;
+  margin: 0 5px;
 }
 .details_container {
   margin: auto;
@@ -101,6 +123,7 @@ export default {
 .details_info {
   text-align: left;
   margin:  0 60px;
+  flex-grow: 3;
 }
 img {
   object-fit: cover;
@@ -109,5 +132,24 @@ img {
   padding: 0;
   margin:  0 60px;
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
+}
+.details_info_container {
+  display: flex;
+  flex-direction: column;
+  height: 170px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  align-content: space-between;
+}
+p {
+  margin: 0;
+  padding: 5px 0;
+}
+.borders_container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: space-evenly;
+  height: 100px;
 }
 </style>

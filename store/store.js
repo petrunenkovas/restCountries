@@ -19,13 +19,13 @@ export default new Vuex.Store({
     },
     actions: {
         initApp: ({commit}) => {
-            axios.get('https://restcountries.com/v3.1/all?fields=name,flags,region,population,capital,subregion,languages,topLevelDomain,borders,nativeName,currencies,demonym')
+            axios.get('https://restcountries.com/v3.1/all?fields=name,flags,region,population,capital,subregion,languages,tld,borders,nativeName,currencies,demonym,cca3')
             .then((response) => {
                 commit('set_countries', response.data)
             })
         },
         fetchCountryDetails: ({commit}, countryName) => {
-            axios.get(`https://restcountries.com/v3.1/name/${countryName}?fields=name,flags,region,population,capital,subregion,languages,topLevelDomain,borders,nativeName,currencies,demonym`)
+            axios.get(`https://restcountries.com/v3.1/name/${countryName}?fields=name,flags,region,population,capital,subregion,languages,tld,borders,nativeName,currencies,demonym,cca3`)
             .then((response) => {
                 commit('set_country_details', response.data[0])
             })
