@@ -119,7 +119,7 @@ export default {
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
   padding: 5px 15px;
   border-radius: 5px;
-  margin: 0 5px;
+  margin: 3px 5px;
 }
 .button.dark {
   background-color: hsl(209, 23%, 22%);
@@ -164,7 +164,33 @@ p {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-content: space-evenly;
-  height: 100px;
+  align-items: safe space-evenly;
+  height: fit-content;
+}
+
+@media (max-width: 700px) {
+.details_container {
+  flex-direction: column;
+}
+
+.details_info_container {
+  height: fit-content;
+  margin: 20px 0;
+  flex-wrap: nowrap;
+  align-content: space-between;
+}
+
+img {
+  object-fit: cover;
+  width: 77%;
+  height: auto;
+  margin: 0 25px;
+}
+.details_info {
+  margin: 0 25px;
+}
+.details_header {
+  margin: 25px;
+}
 }
 </style>

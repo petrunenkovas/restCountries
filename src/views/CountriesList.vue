@@ -111,7 +111,23 @@ icon {
 
 .countriesList {
   display: flex;
-  justify-content: space-around;
+  justify-content: safe space-around;
   flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+  .head {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .search {
+    width: 200px;
+  }
+  .countriesList {
+    padding: 0;
+    margin: auto;
+  }
 }
 </style>

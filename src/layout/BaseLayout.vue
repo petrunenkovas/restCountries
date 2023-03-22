@@ -67,4 +67,15 @@ h1 {
 span {
   font-weight: 600;
 }
+
+@media (max-width: 500px) {
+.header {
+  font-size: x-small;
+  justify-content: flex-start;
+  width: 100%;
+}
+h1, span {
+  padding: 0 15px;
+}
+}
 </style>
