@@ -1,5 +1,5 @@
 <template>
-  <div :class="isDarkTheme ? 'country_container dark' : 'country_container'" @click="handleClick">
+  <div @click="handleClick" class="country_container" :class="{dark: isDarkTheme}">
     <div class="flag">
       <img :src="country.flags.png">
     </div>

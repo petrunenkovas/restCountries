@@ -1,10 +1,10 @@
 <template>
-  <div :class="isDarkTheme ? 'details dark': 'details'">
+  <div class="details" :class="{dark: isDarkTheme}">
     <div class="details_header">
-      <router-link :class="isDarkTheme ? 'button dark': 'button'" to="/">&#8592; Back</router-link>
+      <router-link class="button" :class="{dark: isDarkTheme}" to="/">&#8592; Back</router-link>
     </div>
     <div class="details_container">
-      <img :class="isDarkTheme ? 'dark' : ''" :src="countryDetails.flags.png">
+      <img :src="countryDetails.flags.png" :class="{dark: isDarkTheme}">
       <div class="details_info">
         <h2>{{ countryDetails.name.common }}</h2>
         <div class="details_info_container">
@@ -19,7 +19,8 @@
         <div class="borders_container" v-if="countryDetails.borders.length > 0">
           <p class="borders_header"><strong>Border Contries: </strong></p>
           <router-link
-          :class="isDarkTheme ? 'button dark': 'button'"
+          class="button"
+          :class="{dark: isDarkTheme}"
           v-for="border in countryDetails.borders"
           :key="border"
           :to="'/details/' + countryNameByCode(border)"

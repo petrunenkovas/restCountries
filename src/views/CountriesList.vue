@@ -1,11 +1,11 @@
 <template>
   <div>
     <div class="head">
-      <div class="search" :class="isDarkTheme ? 'dark' : ''">
+      <div class="search" :class="{dark: isDarkTheme}">
         <font-awesome-icon class="icon" icon="fa-solid fa-magnifying-glass" />
         <input v-model="searchState" type="text" placeholder="Search for a country...">
       </div>
-      <select :class="isDarkTheme ? 'filter dark' : 'filter'" v-model="selectedRegion">
+      <select v-model="selectedRegion" class="filter" :class="{dark: isDarkTheme}">
         <option hidden value="all">Filter by Region</option>
         <option v-for="region in getAllRegions" :key="region" :value="region">{{ region }}</option>
       </select>

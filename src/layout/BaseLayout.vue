@@ -1,12 +1,12 @@
 <template>
-  <div :class="isDarkTheme ? 'page dark': 'page'">
-    <div :class="isDarkTheme ? 'header_container dark': 'header_container'">
+  <div class="page" :class="{dark: isDarkTheme}">
+    <div class='header_container' :class="{dark: isDarkTheme}">
       <div class="header">
         <h1>Where in the world?</h1>
         <span @click="switchTheme"><font-awesome-icon icon="fa-solid fa-moon" /> Dark mode</span>
       </div>
     </div>
-    <div :class="isDarkTheme ? 'main_page dark' : 'main_page'">
+    <div class="main_page" :class="{dark: isDarkTheme}">
       <router-view />
     </div>
   </div>
