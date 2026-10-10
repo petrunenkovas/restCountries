@@ -3,30 +3,29 @@
     <div class="details_header">
       <router-link class="button" :class="{dark: isDarkTheme}" to="/">&#8592; Back</router-link>
     </div>
-    <div class="details_container">
-      <img :src="countryDetails.flags.png" :class="{dark: isDarkTheme}">
+    <p v-if="loading" class="status" role="status">Loading country...</p>
+    <p v-else-if="error" class="status" role="alert">Unable to load this country. Please try again later.</p>
+    <div v-else-if="countryDetails" class="details_container">
+      <img :src="countryDetails.flags && (countryDetails.flags.svg || countryDetails.flags.png)" :alt="'Flag of ' + countryDetails.name.common">
       <div class="details_info">
         <h2>{{ countryDetails.name.common }}</h2>
         <div class="details_info_container">
-          <p
-          v-for="detail in details"
-          :key="detail.name"
-          >
-            <strong>{{ detail.title }}:</strong>
-            {{ contryDataView(detail.name) }}
+          <p v-for="detail in details" :key="detail.name">
+            <strong>{{ detail.title }}:</strong> {{ countryDataView(detail.name) }}
           </p>
         </div>
-        <div class="borders_container" v-if="countryDetails.borders.length > 0">
-          <p class="borders_header"><strong>Border Contries: </strong></p>
-          <router-link
-          class="button"
-          :class="{dark: isDarkTheme}"
-          v-for="border in countryDetails.borders"
-          :key="border"
-          :to="'/details/' + countryNameByCode(border)"
-          >
-          {{ countryNameByCode(border) }}
-          </router-link>
+        <div v-if="countryDetails.borders && countryDetails.borders.length" class="borders_container">
+          <p class="borders_header"><strong>Border Countries:</strong></p>
+          <template v-for="border in countryDetails.borders">
+            <router-link
+              v-if="countryNameByCode(border)"
+              :key="border"
+              class="button"
+              :class="{dark: isDarkTheme}"
+              :to="'/details/' + encodeURIComponent(countryNameByCode(border))"
+            >{{ countryNameByCode(border) }}</router-link>
+            <span v-else :key="border" class="border_code">{{ border }}</span>
+          </template>
         </div>
       </div>
     </div>
@@ -38,11 +37,15 @@ export default {
   name: 'country-details',
   data () {
     return {
+      countryDetails: null,
+      loading: false,
+      error: false,
+      requestId: 0,
       details: [
         {name: 'nativeName', title: 'Native Name'},
         {name: 'population', title: 'Population'},
         {name: 'region', title: 'Region'},
-        {name: 'subregion', title: 'Sup Region'},
+        {name: 'subregion', title: 'Subregion'},
         {name: 'capital', title: 'Capital'},
         {name: 'tld', title: 'Top Level Domain'},
         {name: 'currencies', title: 'Currencies'},
@@ -50,148 +53,111 @@ export default {
       ]
     }
   },
-  methods: {
-    fetchCountryDetails (countryName) {
-      this.$store.dispatch('fetchCountryDetails', countryName)
-    },
-    contryDataView (viewName) {
-      if (viewName === 'capital') {
-        return this.countryDetails[viewName][0]
-      }
-      if (viewName === 'tld') {
-        return this.countryDetails[viewName].join(', ')
-      }
-      if (viewName === 'population') {
-        return Number(this.countryDetails[viewName]).toLocaleString()
-      }
-      if (viewName === 'currencies') {
-        let currencies = Object.values(this.countryDetails[viewName]).map((currency) => currency.name)
-        return currencies.join(', ')
-      }
-      if (viewName === 'languages') {
-        let languages = Object.values(this.countryDetails[viewName])
-        return languages.join(', ')
-      }
-      if (viewName === 'nativeName') {
-        let nativeNames = Object.values(this.countryDetails.name[viewName]).map((name) => name.official)
-        return nativeNames.join(', ')
-      }
-      return this.countryDetails[viewName]
-    },
-    countryNameByCode (code) {
-      let country = this.$store.getters.countries.find((country) => country.cca3 === code)
-      return country.name.common
-    }
-  },
   computed: {
-    countryDetails () {
-      return this.$store.getters.countryDetails
-    },
     isDarkTheme () {
       return this.$store.getters.isDarkTheme
+    },
+    countries () {
+      return this.$store.getters.countries
     }
   },
+  watch: {
+    '$route.params.countryName': 'fetchCountryDetails'
+  },
   mounted () {
-    this.$store.dispatch('initApp')
+    this.$store.dispatch('initApp').catch(() => {})
     this.fetchCountryDetails(this.$route.params.countryName)
   },
-  updated () {
-    this.fetchCountryDetails(this.$route.params.countryName)
+  beforeDestroy () {
+    this.requestId++
+  },
+  methods: {
+    fetchCountryDetails (countryName) {
+      const requestId = ++this.requestId
+      this.countryDetails = null
+      this.loading = true
+      this.error = false
+      this.$store.dispatch('fetchCountryDetails', countryName)
+        .then(country => {
+          if (requestId !== this.requestId) return
+          if (!country || !country.name) throw new Error('Country data missing')
+          this.countryDetails = country
+          this.loading = false
+        })
+        .catch(() => {
+          if (requestId !== this.requestId) return
+          this.error = true
+          this.loading = false
+        })
+    },
+    countryDataView (viewName) {
+      const country = this.countryDetails
+      if (viewName === 'nativeName') {
+        const names = country.name && country.name.nativeName
+        return names ? Object.values(names).map(name => name.official).join(', ') : '—'
+      }
+      const value = country[viewName]
+      if (value == null || (Array.isArray(value) && !value.length)) return '—'
+      if (viewName === 'population') return Number(value).toLocaleString()
+      if (viewName === 'currencies') return Object.values(value).map(currency => currency.name).join(', ') || '—'
+      if (viewName === 'languages') return Object.values(value).join(', ') || '—'
+      if (Array.isArray(value)) return value.join(', ')
+      return value || '—'
+    },
+    countryNameByCode (code) {
+      const country = this.countries.find(country => country.cca3 === code)
+      return country && country.name ? country.name.common : null
+    }
   }
 }
 </script>
 
 <style scoped>
 .details {
-  background-color: hsl(0, 0%, 100%);
-  height: 81vh;
+  min-height: calc(100vh - 90px);
+  padding: 48px max(24px, calc((100% - 1200px) / 2));
+  background-color: hsl(0, 0%, 98%);
+  box-sizing: border-box;
 }
-.details.dark {
-  background-color: hsl(207, 26%, 17%);
-}
-.details_header {
-  margin: 55px;
-  width: fit-content;
-}
-.button {
+.details.dark { background-color: hsl(207, 26%, 17%); }
+.details_header { margin-bottom: 56px; }
+.button, .border_code {
+  display: inline-block;
   text-decoration: none;
-  color: black;
-  width: fit-content;
-  box-shadow: 0 0 5px hsl(0, 0%, 80%);
-  padding: 5px 15px;
+  color: inherit;
+  background-color: hsl(0, 0%, 100%);
+  box-shadow: 0 2px 8px hsl(0, 0%, 80%);
+  padding: 8px 18px;
   border-radius: 5px;
-  margin: 3px 5px;
+  margin: 4px 8px 4px 0;
 }
-.button.dark {
+.button.dark, .dark .border_code {
   background-color: hsl(209, 23%, 22%);
-  box-shadow: 0 0 5px hsl(200, 15%, 8%);
-  color: hsl(0, 0%, 100%);
+  box-shadow: 0 2px 8px hsl(200, 15%, 8%);
 }
-.details_container {
-  margin: auto;
-  display: flex;
-  justify-content:flex-start;
-  margin: 0;
-}
-.details_info {
-  text-align: left;
-  margin:  0 60px;
-  flex-grow: 3;
-}
-img {
+.button:hover { transform: translateY(-2px); }
+.button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.details_container { display: flex; align-items: center; gap: 64px; }
+.details_container img {
   object-fit: cover;
-  width: 480px;
-  height: 320px;
-  padding: 0;
-  margin:  0 60px;
-  box-shadow: 0 0 5px hsl(0, 0%, 80%);
-}
-img.dark {
-  box-shadow: 0 0 5px hsl(200, 15%, 8%);
-}
-.details_info_container {
-  display: flex;
-  flex-direction: column;
-  height: 170px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-  align-content: space-between;
-}
-p {
-  margin: 0;
-  padding: 5px 0;
-}
-.borders_container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: safe space-evenly;
-  height: fit-content;
-}
-
-@media (max-width: 700px) {
-.details_container {
-  flex-direction: column;
-}
-
-.details_info_container {
-  height: fit-content;
-  margin: 20px 0;
-  flex-wrap: nowrap;
-  align-content: space-between;
-}
-
-img {
-  object-fit: cover;
-  width: 77%;
+  width: min(42%, 500px);
   height: auto;
-  margin: 0 25px;
+  max-height: 340px;
+  box-shadow: 0 2px 10px hsl(0, 0%, 80%);
 }
-.details_info {
-  margin: 0 25px;
-}
-.details_header {
-  margin: 25px;
-}
+.dark .details_container img { box-shadow: 0 2px 10px hsl(200, 15%, 8%); }
+.details_info { text-align: left; flex: 1; min-width: 0; }
+.details_info h2 { margin-top: 0; }
+.details_info_container { columns: 2; column-gap: 32px; margin: 24px 0 32px; }
+.details_info_container p { break-inside: avoid; margin: 0 0 12px; }
+.borders_container { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.borders_header { margin-right: 12px; }
+.status { text-align: left; }
+@media (max-width: 800px) {
+  .details { padding: 28px 24px 64px; }
+  .details_header { margin-bottom: 48px; }
+  .details_container { flex-direction: column; align-items: stretch; gap: 36px; }
+  .details_container img { width: 100%; max-height: none; }
+  .details_info_container { columns: 1; }
 }
 </style>

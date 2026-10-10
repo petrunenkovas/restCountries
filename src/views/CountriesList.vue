@@ -3,17 +3,19 @@
     <div class="head">
       <div class="search" :class="{dark: isDarkTheme}">
         <font-awesome-icon class="icon" icon="fa-solid fa-magnifying-glass" />
-        <input v-model="searchState" type="text" placeholder="Search for a country...">
+        <input v-model="searchState" type="search" aria-label="Search countries" placeholder="Search for a country...">
       </div>
-      <select v-model="selectedRegion" class="filter" :class="{dark: isDarkTheme}">
-        <option hidden value="all">Filter by Region</option>
+      <select v-model="selectedRegion" class="filter" :class="{dark: isDarkTheme}" aria-label="Filter countries by region">
+        <option value="all">All regions</option>
         <option v-for="region in getAllRegions" :key="region" :value="region">{{ region }}</option>
       </select>
     </div>
+    <p v-if="loading" class="status" role="status">Loading countries...</p>
+    <p v-else-if="error" class="status" role="alert">Unable to load countries. Please try again later.</p>
     <div class="countriesList">
       <country-card
       v-for="country in searchedAndFilteredCountries"
-      :key="country.demonym"
+      :key="country.cca3"
       :country="country"
       />
     </div>
@@ -29,7 +31,9 @@ export default {
   data () {
     return {
       searchState: '',
-      selectedRegion: 'all'
+      selectedRegion: 'all',
+      loading: false,
+      error: false
     }
   },
   mounted () {
@@ -37,7 +41,13 @@ export default {
   },
   methods: {
     initApp () {
+      this.loading = true
       this.$store.dispatch('initApp')
+        .then(() => { this.loading = false })
+        .catch(() => {
+          this.loading = false
+          this.error = true
+        })
     }
   },
   computed: {
@@ -46,8 +56,10 @@ export default {
     },
     getAllRegions () {
       let uniqueRegions = new Set()
-      this.countries.forEach(country => uniqueRegions.add(country.region))
-      return uniqueRegions
+      this.countries.forEach(country => {
+        if (country.region) uniqueRegions.add(country.region)
+      })
+      return Array.from(uniqueRegions).sort()
     },
     searchedCountries () {
       if (this.searchState) {
@@ -73,12 +85,13 @@ export default {
 .head {
   display: flex;
   justify-content: space-between;
-  width: 80%;
+  max-width: 1200px;
+  width: calc(100% - 48px);
   align-items: center;
   margin: auto;
 }
 .search, .filter {
-  margin: 20px;
+  margin: 24px 0;
   background-color: hsl(0, 0%, 100%);
   padding: 10px 30px;
   box-shadow: 0 0 5px hsl(0, 0%, 80%);
@@ -102,32 +115,33 @@ input, select {
 }
 
 input:focus, select:focus {
-  outline: none;
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
 }
 
-icon {
-  margin: 10px;
+.icon {
+  margin-right: 14px;
 }
 
 .countriesList {
-  display: flex;
-  justify-content: safe space-around;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 32px;
+  max-width: 1200px;
+  padding: 16px 24px 64px;
+  margin: auto;
 }
+.status { max-width: 1200px; margin: 24px auto; text-align: left; padding: 0 24px; }
 
 @media (max-width: 700px) {
   .head {
-    width: 100%;
+    width: calc(100% - 48px);
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
   }
-  .search {
-    width: 200px;
-  }
-  .countriesList {
-    padding: 0;
-    margin: auto;
-  }
+  .search { width: 100%; box-sizing: border-box; margin-bottom: 0; }
+  .filter { margin-top: 16px; }
+  .countriesList { gap: 24px; }
 }
 </style>
